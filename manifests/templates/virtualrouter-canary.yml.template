@@ -1,0 +1,23 @@
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualRouter
+metadata:
+  name: flask-router
+  namespace: appmesh-ns
+spec:
+  listeners:
+    - portMapping:
+        port: 8081
+        protocol: http
+  routes:
+    - name: route-to-flask-app
+      httpRoute:
+        match:
+          prefix: /
+        action:
+          weightedTargets:
+            - virtualNodeRef:
+                name: flask-app-${INIT_VERSION}
+              weight: ${INIT_WEIGHT}
+            - virtualNodeRef:
+                name: flask-app-${CURRENT_VERSION}
+              weight: ${NEW_WEIGHT}

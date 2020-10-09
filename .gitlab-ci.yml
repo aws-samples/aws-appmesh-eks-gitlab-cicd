@@ -1,0 +1,91 @@
+image : python:3.8.6-alpine3.11
+
+variables:
+  DOCKER_DRIVER: overlay2
+  APP_NAME: appmesh-app
+
+default:
+  before_script:
+      - |
+          apk --update add curl=7.67.0-r1 jq=1.6-r0 bash=5.0.11-r1              
+          pip --no-cache-dir install --upgrade pip awscli==1.18.154 && aws --version && rm -rf /var/cache/apk/* 
+
+          export KUBECTL_VERSION=v1.19.0
+          curl -L -o /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl
+          chmod +x /usr/bin/kubectl 
+          kubectl version --client 
+
+          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+          mv /tmp/eksctl /usr/local/bin
+          eksctl version
+stages:
+  - publish
+  - deploy
+  - kill
+
+publish:
+  stage: publish
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+      - |
+          docker --version
+          apk add --no-cache curl jq python3 py-pip && pip install awscli==1.18.154
+  script:
+    - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+    - export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+    - echo "ACCOUNT_ID= $ACCOUNT_ID"
+    - export REPOSITORY_URL=$ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/flask-app:${CI_PIPELINE_ID} && echo $REPOSITORY_URL
+    - cd src/
+    - docker build -t $REPOSITORY_URL .
+    - docker push $REPOSITORY_URL
+    - docker tag $REPOSITORY_URL $ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/flask-app:latest
+    - docker push $ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/flask-app:latest  
+
+deploy%25:
+  stage: deploy
+  when: manual
+  script:
+    - export INIT_WEIGHT=75 && export NEW_WEIGHT=25
+    - eksctl utils write-kubeconfig --kubeconfig kubeconfig-$CLUSTER_NAME.yaml --cluster $CLUSTER_NAME --region $AWS_DEFAULT_REGION
+    - export KUBECONFIG=${PWD}/kubeconfig-$CLUSTER_NAME.yaml
+    - chmod 775 pipeline.sh && ./pipeline.sh deploy
+
+deploy%50:
+  stage: deploy
+  when: manual
+  script:
+    - export INIT_WEIGHT=50 && export NEW_WEIGHT=50
+    - eksctl utils write-kubeconfig --kubeconfig kubeconfig-$CLUSTER_NAME.yaml --cluster $CLUSTER_NAME --region $AWS_DEFAULT_REGION
+    - export KUBECONFIG=${PWD}/kubeconfig-$CLUSTER_NAME.yaml
+    - chmod 775 pipeline.sh && ./pipeline.sh deploy
+
+
+deploy%75:
+  stage: deploy
+  when: manual
+  script:
+    - export INIT_WEIGHT=25 && export NEW_WEIGHT=75
+    - eksctl utils write-kubeconfig --kubeconfig kubeconfig-$CLUSTER_NAME.yaml --cluster $CLUSTER_NAME --region $AWS_DEFAULT_REGION
+    - export KUBECONFIG=${PWD}/kubeconfig-$CLUSTER_NAME.yaml
+    - chmod 775 pipeline.sh && ./pipeline.sh deploy
+
+
+deploy%100:
+  stage: deploy
+  when: manual
+  script:
+    - export INIT_WEIGHT=0 && export NEW_WEIGHT=100
+    - eksctl utils write-kubeconfig --kubeconfig kubeconfig-$CLUSTER_NAME.yaml --cluster $CLUSTER_NAME --region $AWS_DEFAULT_REGION
+    - export KUBECONFIG=${PWD}/kubeconfig-$CLUSTER_NAME.yaml
+    - chmod 775 pipeline.sh && ./pipeline.sh deploy
+
+
+kill_previous:
+  stage: kill
+  when: manual
+  script:
+    - eksctl utils write-kubeconfig --kubeconfig kubeconfig-$CLUSTER_NAME.yaml --cluster $CLUSTER_NAME --region $AWS_DEFAULT_REGION
+    - export KUBECONFIG=${PWD}/kubeconfig-$CLUSTER_NAME.yaml
+    - chmod 775 pipeline.sh && ./pipeline.sh deploy

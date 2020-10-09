@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app-${APP_VERSION}
+  labels:
+    app: flask-app-${APP_VERSION}
+  namespace: appmesh-ns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-app-${APP_VERSION}
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: flask-app-${APP_VERSION}
+    spec:
+      containers:
+      - image: ${ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/flask-app:${APP_VERSION}
+        imagePullPolicy: Always
+        name: flask-app-${APP_VERSION}
+        ports:
+        - containerPort: 8081

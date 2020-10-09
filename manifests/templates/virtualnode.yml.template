@@ -1,0 +1,24 @@
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualNode
+metadata:
+  name: flask-app-${APP_VERSION}
+  namespace: appmesh-ns
+spec:
+  podSelector:
+    matchLabels:
+      app: flask-app-${APP_VERSION}
+  listeners:
+    - portMapping:
+        port: 8081
+        protocol: http
+      healthCheck:
+        protocol: http
+        path: '/'
+        healthyThreshold: 3
+        unhealthyThreshold: 5
+        timeoutMillis: 5000
+        intervalMillis: 5000
+  serviceDiscovery:
+    awsCloudMap:
+      namespaceName: appmeshworkshop.pvt.local
+      serviceName: flask-app-${APP_VERSION}

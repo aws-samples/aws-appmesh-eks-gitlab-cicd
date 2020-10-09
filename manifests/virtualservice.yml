@@ -1,0 +1,12 @@
+---
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualService
+metadata:
+  name: flask
+  namespace: appmesh-ns
+spec:
+  awsName: flask.appmeshworkshop.hosted.local
+  provider:
+    virtualRouter:
+      virtualRouterRef:
+        name: flask-router

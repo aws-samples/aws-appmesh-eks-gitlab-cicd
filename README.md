@@ -1,11 +1,16 @@
-## My Project
+## CI/CD on Amazon EKS using AWS AppMesh and Gitlab CI
 
-TODO: Fill this README out!
+##### Steps
+1. Check this [manual](infra/README.md), and execute the infrastructure commands to create EKS cluster and its dependencies.
+2. Create an empty repo in Gitlab
+3. Put following environment variables in CI/CD Settings of created empty repo(step 2).
 
-Be sure to:
-
-* Change the title in this README
-* Edit your repository description on GitHub
+- `CLUSTER_NAME=<EKS_CLUSTER_NAME>`
+- `AWS_ACCESS_KEY_ID=<IAM_ACCESS_KEY_ID>`
+- `AWS_SECRET_ACCESS_KEY=<IAM_SECRET_KEY>`
+- `AWS_DEFAULT_REGION=<AWS_DEFAULT_REGION(i.e. us-west-2)>`
+  
+4. Add Gitlab as remote origin, then push this project into created repo in Gitlab 
 
 ## Security
 
