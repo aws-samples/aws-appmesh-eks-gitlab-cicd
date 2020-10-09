@@ -19,11 +19,25 @@ default:
           mv /tmp/eksctl /usr/local/bin
           eksctl version
 stages:
+  - test
   - publish
   - deploy
   - kill
 
-publish:
+unit-test:
+  stage: test
+  script:
+    - sleep 3
+    - echo "unit-tests executed"
+
+integration-test:
+  stage: test
+  script:
+    - sleep 3
+    - echo "integration-tests executed"
+
+
+push_to_ecr:
   stage: publish
   image: docker:latest
   services:
@@ -88,4 +102,4 @@ kill_previous:
   script:
     - eksctl utils write-kubeconfig --kubeconfig kubeconfig-$CLUSTER_NAME.yaml --cluster $CLUSTER_NAME --region $AWS_DEFAULT_REGION
     - export KUBECONFIG=${PWD}/kubeconfig-$CLUSTER_NAME.yaml
-    - chmod 775 pipeline.sh && ./pipeline.sh deploy
+    - chmod 775 pipeline.sh && ./pipeline.sh destroy

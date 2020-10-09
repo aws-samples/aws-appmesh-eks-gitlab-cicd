@@ -1,4 +1,6 @@
 ## CI/CD on Amazon EKS using AWS AppMesh and Gitlab CI
+![EKS AppMesh Gitlab CI/CD](images/appmesh-eks-gitlab-cicd.jpg)
+
 
 ##### Steps
 1. Check this [manual](infra/README.md), and execute the infrastructure commands to create EKS cluster and its dependencies.
@@ -11,6 +13,16 @@
 - `AWS_DEFAULT_REGION=<AWS_DEFAULT_REGION(i.e. us-west-2)>`
   
 4. Add Gitlab as remote origin, then push this project into created repo in Gitlab 
+```
+git remote set-url origin <YOUR_GITLAB_REPOSITORY_URL>
+git remote -v
+git push origin master
+```
+
+**Sample Gitlab CI/CD Pipeline:**
+
+![EKS AppMesh Gitlab CI/CD Pipeline](images/eks-appmesh-gitlabci-pipeline.png)
+
 
 ## Security
 

@@ -13,6 +13,7 @@ Go to AWS EC2 console, create EC2 keypair and download private key. This will be
 **2. Export following variables**
 
 `export CLUSTER_NAME=<YOUR-EKS-CLUSTER-NAME>`
+
 `export REGION=<YOUR-AWS-REGION>(i.e. us-west-2)`
 
 **3. Create config file for EKS cluster**
@@ -77,7 +78,7 @@ wget -O alb-ingress-iam-policy.json https://raw.githubusercontent.com/kubernetes
 POLICY_ARN=`aws iam create-policy --policy-name ALBIngressControllerIAMPolicy --policy-document file://alb-ingress-iam-policy.json | jq -r ".Policy.Arn"`
 ```
 
-Create servcie account for Alb ingress controller with policy created above
+Create service account for Alb ingress controller with policy created above
 ```
 eksctl create iamserviceaccount \
        --cluster=$CLUSTER_NAME \
