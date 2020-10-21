@@ -124,6 +124,7 @@ helm upgrade -i appmesh-controller eks/appmesh-controller \
 This table will be used by Gitlab CI/CD in canary deployment to track previous and current versions of application
 ```
 export TABLE_NAME=versioning
+export REPO_NAME=flask-app
 
 aws dynamodb create-table \
     --table-name $TABLE_NAME \
@@ -133,4 +134,7 @@ aws dynamodb create-table \
         AttributeName=app_name,KeyType=HASH \
 --provisioned-throughput \
         ReadCapacityUnits=1,WriteCapacityUnits=1
+
+aws ecr create-repository --repository-name $REPO_NAME
+        
 ```
