@@ -64,8 +64,8 @@ eksctl utils associate-iam-oidc-provider --cluster=$CLUSTER_NAME  --region=$REGI
 **6. Add repos for EKS, and other stable and incubator charts**
 
 ```
-helm repo add stable https://kubernetes-charts.storage.googleapis.com/
-helm repo add incubator http://storage.googleapis.com/kubernetes-charts-incubator
+helm repo add stable https://charts.helm.sh/stable
+helm helm repo add incubator https://charts.helm.sh/incubator
 helm repo add eks https://aws.github.io/eks-charts
 helm repo update
 ```
